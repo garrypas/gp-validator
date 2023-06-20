@@ -1,29 +1,24 @@
-const evaluateRule = (key, ruleName, data) => {
-
-}
+const getRules = (ruleList) => ruleList.split('|');
 
 class Validator {
+  #rules;
   constructor () {
-    this.rules = {
+    this.#rules = {
       required: (key, data) => !!data[key].toString() ? undefined : `The ${key} field is required.`,
       integer: (key, data) => /^[0-9]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be an integer value.`,
       decimal: (key, data) => /^[0-9.]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be an integer value.`,
     };
   }
 
-  getRules(ruleList) {
-    return ruleList.split('|');
-  }
-
   async validate (data, rules) {
     const validationResults = await Promise.all(
       Object.keys(data).flatMap(
         async (key) => {
-          const thisKeyRules = this.getRules(rules[key]);
+          const thisKeyRules = getRules(rules[key]);
           return ({
             key,
             validationResult: (await Promise.all(
-              thisKeyRules.map((ruleName) => this.evaluateRule(ruleName, key, data)),
+              thisKeyRules.map((ruleName) => this.#evaluateRule(ruleName, key, data)),
             )).filter((error) => error)
           });
         },
@@ -46,14 +41,14 @@ class Validator {
 
   addRule (name, ruleDefinition) {
     const { rule, errorTextFunction } = ruleDefinition;
-    this.rules[name] = async (key, data) => !!(await rule(key, data)) ? undefined : errorTextFunction(key, data);
+    this.#rules[name] = async (key, data) => !!(await rule(key, data)) ? undefined : errorTextFunction(key, data);
   }
 
-  evaluateRule(ruleName, key, data) {
-    if (!this.rules[ruleName]) {
+  #evaluateRule(ruleName, key, data) {
+    if (!this.#rules[ruleName]) {
       return undefined;
     }
-    return this.rules[ruleName](key, data);
+    return this.#rules[ruleName](key, data);
   }
 }
 
