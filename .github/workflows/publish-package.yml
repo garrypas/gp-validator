@@ -1,0 +1,50 @@
+name: "Publish package"
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install node_modules
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: https://npm.pkg.github.com/
+
+      - name: Set NPM package version to match tag
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          npm ci
+          PACKAGE_VERSION=$(echo "${GITHUB_REF_NAME}" | sed "s/^v//g")
+          echo "NPM Package version: ${PACKAGE_VERSION}"
+          npm version ${PACKAGE_VERSION} --no-git-tag-version
+          npm publish

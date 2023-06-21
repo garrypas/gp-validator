@@ -18,6 +18,6 @@ type Validator = {
   }): void;
 };
 
-declare module 'gp-validator' {
+declare module '@garrypas/gp-validator' {
   export const create: () => Validator;
 }
