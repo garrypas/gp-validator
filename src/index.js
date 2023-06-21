@@ -1,4 +1,4 @@
-const getRules = (ruleList) => ruleList.split('|');
+const getRules = (ruleList) => ruleList?.split('|') || [];
 
 class Validator {
   #rules;

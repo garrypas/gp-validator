@@ -2,8 +2,8 @@
   "name": "gp-validator",
   "version": "1.0.0",
   "description": "A compact validation library",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
   "scripts": {
     "test": "jest"
   },
