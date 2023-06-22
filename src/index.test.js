@@ -37,7 +37,7 @@ describe('integration tests', () => {
     const result = await validator.validate(data, rules);
     expect(result.errorCount).toBe(1);
     expect(result.errors.price).toHaveLength(1);
-    expect(result.errors.price).toContain(`The price field must be an integer value.`);
+    expect(result.errors.price).toContain(`The price field must be a decimal value.`);
   });
 
   test('should validate multiple rules', async () => {
@@ -45,8 +45,10 @@ describe('integration tests', () => {
     const result = await validator.validate(data, rules);
     expect(result.errorCount).toBe(2);
     expect(result.errors.numField).toHaveLength(2);
-    expect(result.errors.numField).toContain(`The numField field must be an integer value.`);
-    expect(result.errors.numField).toContain(`The numField field must be an integer value.`);
+    expect(result.errors.numField).toEqual([
+      'The numField field is required.',
+      'The numField field must be an integer value.',
+    ]);
   });
 
 

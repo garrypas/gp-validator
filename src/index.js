@@ -6,7 +6,7 @@ class Validator {
     this.#rules = {
       required: (key, data) => !!data[key].toString() ? undefined : `The ${key} field is required.`,
       integer: (key, data) => /^[0-9]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be an integer value.`,
-      decimal: (key, data) => /^[0-9.]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be an integer value.`,
+      decimal: (key, data) => /^[0-9.]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be a decimal value.`,
     };
   }
 
