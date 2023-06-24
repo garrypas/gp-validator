@@ -7,7 +7,7 @@ type ValidatorResult<TData> = {
 
 type FieldRule<TData> = {
   name: string;
-  rule: (key: string, data: TData) => string;
+  errorMessage: (key: string, data: TData) => string;
 }
 
 type ValidatorRules<TData> = {
@@ -38,7 +38,7 @@ type Validator = {
    * @param name the name of the rule the handler applies to
    * @param handler the error handler
    */
-  setErrorHandler (name: string, handler: (key: string, data: TData) => string): void;
+  setErrorHandler<TData> (name: string, handler: (key: string, data: TData) => string): void;
 };
 
 declare module '@garrypas/gp-validator' {

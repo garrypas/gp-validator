@@ -5,6 +5,7 @@ const rules = {
   price: 'decimal',
   numField: 'required|integer',
   fish: 'fish-names',
+  items: 'required',
 };
 
 describe('integration tests', () => {
@@ -16,6 +17,7 @@ describe('integration tests', () => {
       title: 'Hello World',
       price: '1000.00',
       numField: 1,
+      items: [ 1, 2, 3 ],
     };
   });
 
@@ -101,12 +103,21 @@ describe('integration tests', () => {
       ...rules,
       title: [{
         name: 'required',
-        rule: (key, data) => `The value "${data.title}" for ${key} was empty.`,
+        errorMessage: (key, data) => `The value "${data.title}" for ${key} was empty.`,
       }],
       description: 'required',
     }
     const result = await validator.validate(data, newRules);
     expect(result.errors.title).toContain(`The value "" for title was empty.`);
     expect(result.errors.description).toHaveLength(1);
+  });
+
+  test('should fail when array is empty', async () => {
+    data.items = [];
+    const result = await validator.validate(data, rules);
+    console.log(result);
+    expect(result.errorCount).toBe(1);
+    expect(result.errors.items).toHaveLength(1);
+    expect(result.errors.items).toContain('At least one value must be selected for the items field.');
   });
 })

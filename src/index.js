@@ -1,4 +1,4 @@
-const getRules = (ruleList) => Array.isArray(ruleList)
+const getRules = (ruleList) => Array.isArray(ruleList) 
   ? ruleList
   : ruleList?.split('|') || [];
 
@@ -7,7 +7,9 @@ class Validator {
   #errorMessages;
   constructor () {
     this.#errorMessages = {
-      required: (key) => `The ${key} field is required.`,
+      required: (key, data) => Array.isArray(data[key])
+        ? `At least one value must be selected for the ${key} field.`
+        : `The ${key} field is required.`,
       integer: (key) => `The ${key} field must be an integer value.`,
       decimal: (key) => `The ${key} field must be a decimal value.`,
     }
@@ -32,7 +34,7 @@ class Validator {
                 }
                 const result = await this.#evaluateRule(ruleItem.name, key, data);
                 if (result) {
-                  return ruleItem.rule(key, data);
+                  return ruleItem.errorMessage(key, data);
                 }
                 return result;
               }),
@@ -45,9 +47,9 @@ class Validator {
     const errors = {
       ...validationResults.reduce((prev, cur) => {
         prev[cur.key] = cur.validationResult;
-        errorCount += cur.validationResult.length;
-        return prev;
-      }, {})
+            errorCount += cur.validationResult.length;
+          return prev;
+        }, {})
     };
     const result = {
       errorCount,

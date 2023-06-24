@@ -63,7 +63,7 @@ Change the error text for a particular field when a particular validation fails
     const rules = {
       title: [{
         name: 'required',
-        rule: (key, data) => `Il titolo "${data.title}" non e buona per ${key}`,
+        errorMessage: (key, data) => `Il titolo "${data.title}" non e buona per ${key}`,
       }],
       description: 'required',
     }
