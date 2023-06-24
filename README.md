@@ -51,3 +51,21 @@ const rules = { fish: 'fish-names' };
 // Will have an array with one string message indicating that cow is not a valid fish name
 const result = validator.validate(data, rules);
 ```
+
+Change the text output when a specific rule fails
+```javascript
+validator.setErrorHandler('required', (key, data) => `Il titolo "${data.title}" non e buona per ${key}`);
+```
+
+Change the error text for a particular field when a particular validation fails
+
+```javascript
+    const rules = {
+      title: [{
+        name: 'required',
+        rule: (key, data) => `Il titolo "${data.title}" non e buona per ${key}`,
+      }],
+      description: 'required',
+    }
+    const result = await validator.validate(data, rules);
+```

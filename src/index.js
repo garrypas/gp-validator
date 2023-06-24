@@ -1,12 +1,20 @@
-const getRules = (ruleList) => ruleList?.split('|') || [];
+const getRules = (ruleList) => Array.isArray(ruleList)
+  ? ruleList
+  : ruleList?.split('|') || [];
 
 class Validator {
   #rules;
+  #errorMessages;
   constructor () {
+    this.#errorMessages = {
+      required: (key) => `The ${key} field is required.`,
+      integer: (key) => `The ${key} field must be an integer value.`,
+      decimal: (key) => `The ${key} field must be a decimal value.`,
+    }
     this.#rules = {
-      required: (key, data) => !!data[key].toString() ? undefined : `The ${key} field is required.`,
-      integer: (key, data) => /^[0-9]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be an integer value.`,
-      decimal: (key, data) => /^[0-9.]+$/i.test(data[key].toString()) ? undefined : `The ${key} field must be a decimal value.`,
+      required: (key, data) => !!data[key].toString() ? undefined : this.#errorMessages.required(key, data),
+      integer: (key, data) => /^[0-9]+$/i.test(data[key].toString()) ? undefined : this.#errorMessages.integer(key, data),
+      decimal: (key, data) => /^[0-9.]+$/i.test(data[key].toString()) ? undefined : this.#errorMessages.decimal(key, data),
     };
   }
 
@@ -18,7 +26,16 @@ class Validator {
           return ({
             key,
             validationResult: (await Promise.all(
-              thisKeyRules.map((ruleName) => this.#evaluateRule(ruleName, key, data)),
+              thisKeyRules.map(async (ruleItem) => {
+                if (typeof ruleItem === 'string') {
+                  return this.#evaluateRule(ruleItem, key, data);
+                }
+                const result = await this.#evaluateRule(ruleItem.name, key, data);
+                if (result) {
+                  return ruleItem.rule(key, data);
+                }
+                return result;
+              }),
             )).filter((error) => error)
           });
         },
@@ -42,6 +59,10 @@ class Validator {
   addRule (name, ruleDefinition) {
     const { rule, errorTextFunction } = ruleDefinition;
     this.#rules[name] = async (key, data) => !!(await rule(key, data)) ? undefined : errorTextFunction(key, data);
+  }
+
+  setErrorHandler (name, handler) {
+    this.#errorMessages[name] = handler;
   }
 
   #evaluateRule(ruleName, key, data) {

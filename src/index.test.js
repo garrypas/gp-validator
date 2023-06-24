@@ -51,7 +51,6 @@ describe('integration tests', () => {
     ]);
   });
 
-
   test('should be able to add a custom rule', async () => {
     validator.addRule('fish-names', {
       rule: (key, data) => ['cod', 'tuna', 'pike', 'trout', 'salmon'].includes(data[key]),
@@ -74,5 +73,40 @@ describe('integration tests', () => {
     expect(result.errorCount).toBe(1);
     expect(result.errors.fish).toHaveLength(1);
     expect(result.errors.fish).toContain(`The fish field does not contain a valid type of fish.`);
+  });
+
+  test('should be able to change the default error message for a rule', async () => {
+    data.title = '';
+    validator.setErrorHandler('required', (key, data) => `Il titolo "${data.title}" non e buona per ${key}`)
+    const result = await validator.validate(data, rules);
+    expect(result.errors.title).toContain(`Il titolo "" non e buona per title`);
+  });
+
+  test('should validate ok when error message text for a specific field being validated and input is valid', async () => {
+    const newRules = {
+      ...rules,
+      title: [{
+        name: 'required',
+        rule: (key, data) => `The value "${data.title}" for ${key} was empty.`,
+      }],
+    }
+    const result = await validator.validate(data, newRules);
+    expect(result.errors.title).toHaveLength(0);
+  });
+
+  test('should be able to change the error message text for a specific field being validated', async () => {
+    data.title = '';
+    data.description = '';
+    const newRules = {
+      ...rules,
+      title: [{
+        name: 'required',
+        rule: (key, data) => `The value "${data.title}" for ${key} was empty.`,
+      }],
+      description: 'required',
+    }
+    const result = await validator.validate(data, newRules);
+    expect(result.errors.title).toContain(`The value "" for title was empty.`);
+    expect(result.errors.description).toHaveLength(1);
   });
 })
