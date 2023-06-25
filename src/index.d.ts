@@ -1,8 +1,12 @@
+type ValidationResultErrors<TData> = {
+  [K in keyof TData]:  TData[K] extends object
+    ? ValidationResultErrors<TData[K]>
+    : string[];
+}
+
 type ValidatorResult<TData> = {
   errorCount: number;
-  errors: {
-    [K in keyof TData]:  string[]
-  };
+  errors: ValidationResultErrors<TData>
 }
 
 type FieldRule<TData> = {

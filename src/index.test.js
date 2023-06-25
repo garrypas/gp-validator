@@ -6,6 +6,12 @@ const rules = {
   numField: 'required|integer',
   fish: 'fish-names',
   items: 'required',
+  nested: {
+    field1: {
+      field1a: 'required',
+    },
+    field2: 'requird',
+  },
 };
 
 describe('integration tests', () => {
@@ -18,6 +24,12 @@ describe('integration tests', () => {
       price: '1000.00',
       numField: 1,
       items: [ 1, 2, 3 ],
+      nested: {
+        field1: {
+          field1a: 'Hello Again',
+        },
+        field2: 'Goodbye',
+      }
     };
   });
 
@@ -115,9 +127,35 @@ describe('integration tests', () => {
   test('should fail when array is empty', async () => {
     data.items = [];
     const result = await validator.validate(data, rules);
-    console.log(result);
     expect(result.errorCount).toBe(1);
     expect(result.errors.items).toHaveLength(1);
     expect(result.errors.items).toContain('At least one value must be selected for the items field.');
+  });
+
+  test('should validate nested fields', async () => {
+    data.nested.field1.field1a = '';
+    const result = await validator.validate(data, rules);
+    expect(result.errorCount).toBe(1);
+    expect(result.errors.nested.field1.field1a).toHaveLength(1);
+    expect(result.errors.nested.field1.field1a).toContain('The field1a field is required.');
+  });
+
+  test('should validate nested with object definition', async () => {
+    data.nested.field1.field1a = '';
+    const newRules = {
+      ...rules,
+      nested: {
+        field1: {
+          field1a: [{
+            name: 'required',
+            errorMessage: (key, data) => `The value "${data.nested.field1.field1a}" for ${key} was empty.`,
+          }],
+        },
+      },
+    };
+    const result = await validator.validate(data, newRules);
+    expect(result.errorCount).toBe(1);
+    expect(result.errors.nested.field1.field1a).toHaveLength(1);
+    expect(result.errors.nested.field1.field1a).toContain('The value "" for nested.field1.field1a was empty.');
   });
 })

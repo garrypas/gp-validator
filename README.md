@@ -69,3 +69,33 @@ Change the error text for a particular field when a particular validation fails
     }
     const result = await validator.validate(data, rules);
 ```
+
+Nested objects are handled as follows:
+
+```javascript
+    const rules = {
+      nested: {
+        field1: {
+          field1a: 'required',
+        },
+      },
+    };
+    const data = {
+      nested: {
+        field1: {
+          field1a: 'Hello Again',
+        },
+      }
+    };
+    const result = await validator.validate(data, rules);
+    /* Returns
+    {
+     "nested": {
+      "field1": {
+       "field1a": [
+        "The field1a field is required."
+       ]
+      },
+     }
+    }
+```
