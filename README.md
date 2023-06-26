@@ -35,6 +35,9 @@ Built in rules are:
 - `required`
 - `integer`
 - `decimal`
+- `money`
+
+Decimal can be configured using arguments. e.g `decimal(1,2)` to ensure that (if a decimal point is given) then 1 to 2 digits follow it. `money` allows up to 2 decimal places, any more and it will be invalid.
 
 ## Adding rules
 
@@ -43,7 +46,7 @@ Custom rules can be added
 ```javascript
 validator.addRule('fish-names', {
   rule: async (key, data) => ['cod', 'tuna', 'pike', 'trout', 'salmon'].includes(data[key]),
-  errorTextFunction: (key, _) => `The ${key} field does not contain a valid type of fish.`,
+  errorMessage: (key, _) => `The ${key} field does not contain a valid type of fish.`,
 });
 
 const data = { fish: 'cow' };
@@ -67,6 +70,21 @@ Change the error text for a particular field when a particular validation fails
       }],
       description: 'required',
     }
+    const result = await validator.validate(data, rules);
+```
+
+...mixing and matching rule definition types is ok. e.g.
+
+```javascript
+    const rules = {
+      title: [
+        {
+          name: 'decimal',
+          errorMessage: (key, data) => `Il prezo "${data.price}" non e buona per ${key}`,
+        },
+        'required',
+      ],
+    };
     const result = await validator.validate(data, rules);
 ```
 
@@ -98,4 +116,18 @@ Nested objects are handled as follows:
       },
      }
     }
+```
+
+Regular expressions
+
+Change the error text for a particular field when a particular validation fails
+
+```javascript
+    const result = await validator.validate(
+      { toValidate: 'abc' },
+      { toValidate: [
+        ruleDefinitions.regex(/[0-9]/)
+      ]},
+    );
+    // fails because 'abc' does not match the regex
 ```

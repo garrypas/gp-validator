@@ -10,9 +10,10 @@ type ValidatorResult<TData> = {
 }
 
 type FieldRule<TData> = {
-  name: string;
   errorMessage: (key: string, data: TData) => string;
-}
+} & (
+  { name: string } | { rule: (key: string, data: TData) => Promise<boolean> }
+)
 
 type ValidatorRules<TData> = {
   [K in keyof TData]:  string | FieldRule<TData>[]
@@ -34,7 +35,7 @@ type Validator = {
    */
   addRule<TData> (name: string, ruleDefinition: {
     rule: (key: string, data: TData) => Promise<boolean>,
-    errorTextFunction: (key: string, data: TData) => string,
+    errorMessage: (key: string, data: TData) => string,
   }): void;
 
   /**

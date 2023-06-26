@@ -36,6 +36,25 @@ const unFlattenObject = (obj) => {
   }, {});
 }
 
+const extractArguments = (func) => {
+  const argumentRegex = /\((.*?)\)/;
+  const argumentMatches = func.toString().match(argumentRegex);
+  if (!argumentMatches?.length || argumentMatches.length < 2) {
+    return [];
+  }
+
+  const argumentString = argumentMatches[1];
+  if (argumentString.trim() === '') {
+    return [];
+  }
+  
+  return argumentString.split(',').map(arg => arg.trim());
+}
+
+const createDecimalRegex = (args = []) => {
+  return new RegExp(`^\\d+(?:\\.\\d{${args[0] ?? 1},${args[1] ?? args[0] ?? ''}})?$`);
+}
+
 class Validator {
   #rules;
   #errorMessages;
@@ -46,11 +65,18 @@ class Validator {
         : `The ${cleanKey(key)} field is required.`,
       integer: (key) => `The ${cleanKey(key)} field must be an integer value.`,
       decimal: (key) => `The ${cleanKey(key)} field must be a decimal value.`,
+      money: (key) => `The ${cleanKey(key)} field must be a valid monetary value.`,
     }
     this.#rules = {
       required: (key, data) => !!data[key].toString() ? undefined : this.#errorMessages.required(key, data),
-      integer: (key, data) => /^[0-9]+$/i.test(data[key].toString()) ? undefined : this.#errorMessages.integer(key, data),
-      decimal: (key, data) => /^[0-9.]+$/i.test(data[key].toString()) ? undefined : this.#errorMessages.decimal(key, data),
+      integer: (key, data) => /^[0-9]*$/i.test(data[key].toString()) ? undefined : this.#errorMessages.integer(key, data),
+      decimal: (key, data, args = []) =>
+        data[key] && !createDecimalRegex(args).test(data[key].toString())
+          ? this.#errorMessages.decimal(key, data)
+          : undefined,
+      money: (key, data) => data[key] && !createDecimalRegex([1, 2]).test(data[key]) 
+        ? this.#errorMessages.money(key, data)
+        : undefined,
     };
   }
 
@@ -67,13 +93,16 @@ class Validator {
             validationResult: (await Promise.all(
               thisKeyRules.map(async (ruleItem) => {
                 if (typeof ruleItem === 'string') {
-                  return this.#evaluateRule(ruleItem, key, flatData);
+                  return this.#getError(ruleItem, key, flatData);
                 }
-                const result = await this.#evaluateRule(ruleItem.name, key, flatData);
-                if (result) {
+                const isValid = ruleItem.rule
+                  ? await ruleItem.rule(key, flatData)
+                  : !(await this.#getError(ruleItem.name, key, flatData));
+
+                if (!isValid) {
                   return ruleItem.errorMessage(key, data);
                 }
-                return result;
+                return undefined;
               }),
             )).filter((error) => error)
           });
@@ -96,19 +125,21 @@ class Validator {
   }
 
   addRule (name, ruleDefinition) {
-    const { rule, errorTextFunction } = ruleDefinition;
-    this.#rules[name] = async (key, data) => !!(await rule(key, data)) ? undefined : errorTextFunction(key, data);
+    const { rule, errorMessage } = ruleDefinition;
+    this.#rules[name] = async (key, data) => !!(await rule(key, data)) ? undefined : errorMessage(key, data);
   }
 
   setErrorHandler (name, handler) {
     this.#errorMessages[name] = handler;
   }
 
-  #evaluateRule(ruleName, key, data) {
+  #getError(ruleName, key, data) {
+    const args = extractArguments(ruleName);
+    ruleName = ruleName.split('(')[0];
     if (!this.#rules[ruleName]) {
       return undefined;
     }
-    return this.#rules[ruleName](key, data);
+    return this.#rules[ruleName](key, data, args);
   }
 }
 
