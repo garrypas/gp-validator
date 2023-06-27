@@ -36,8 +36,11 @@ Built in rules are:
 - `integer`
 - `decimal`
 - `money`
+- `length`
 
 Decimal can be configured using arguments. e.g `decimal(1,2)` to ensure that (if a decimal point is given) then 1 to 2 digits follow it. `money` allows up to 2 decimal places, any more and it will be invalid.
+
+Length can be configured using arguments. e.g `length(1, 100)` ensures a min length of 1 and max length of 100 characters. You can exclude either parameter to check only the min OR max, for example `length(,100)` ensures a max length of 100 characters.
 
 ## Adding rules
 

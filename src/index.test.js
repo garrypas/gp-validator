@@ -276,4 +276,26 @@ describe('integration tests', () => {
     expect(result.errors.value).toHaveLength(0);
     expect(result.errorCount).toBe(0);
   });
+
+  [
+    { value: 'abc', minLength: '4', expectedError: 'The value field must be greater than 4 in length.' },
+    { value: 'abcd', minLength: '4', expectedError: undefined },
+    { value: 'abcd', minLength: '0', maxLength: '3', expectedError: 'The value field must be less than 3 in length.' },
+    { value: 'abc', minLength: '0', maxLength: '3', expectedError: undefined },
+    { value: 'abcd', maxLength: '3', expectedError: 'The value field must be less than 3 in length.' },
+    { value: 'abc', maxLength: '3', expectedError: undefined },
+    { value: 'abcd', minLength: '1', maxLength: '3', expectedError: 'The value field must be greater than 1 and less than 3 in length.' },
+  ].forEach(({ value, expectedError, minLength = '', maxLength = '' }) =>
+    test(`should validate "${value}" as ${expectedError ? 'a valid': 'an invalid'} length when size should be in the bounds (${minLength},${maxLength})`, async () => {
+      const result = await validator.validate(
+        { value },
+        { value: `length(${minLength ?? ''},${maxLength ?? ''})`},
+      );
+      if (expectedError) {
+        expect(result.errors.value).toContain(expectedError);
+      }
+      expect(result.errors.value).toHaveLength(expectedError ? 1 : 0);
+      expect(result.errorCount).toBe(expectedError ? 1 : 0);
+    }),
+  );
 })

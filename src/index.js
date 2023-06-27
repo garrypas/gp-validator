@@ -66,6 +66,14 @@ class Validator {
       integer: (key) => `The ${cleanKey(key)} field must be an integer value.`,
       decimal: (key) => `The ${cleanKey(key)} field must be a decimal value.`,
       money: (key) => `The ${cleanKey(key)} field must be a valid monetary value.`,
+      length: (key, data, args = []) =>
+        `The ${cleanKey(key)} field must be ${
+          args[0] && args[0] !== '0' ? `greater than ${args[0]}` : ''
+        }${
+          args[0] && args[0] !== '0' && args[1] ? ' and ' : ''
+        }${
+          args[1] ? `less than ${args[1]}` : ''
+        } in length.`,
     }
     this.#rules = {
       required: (key, data) => !!data[key].toString() ? undefined : this.#errorMessages.required(key, data),
@@ -77,6 +85,17 @@ class Validator {
       money: (key, data) => data[key] && !createDecimalRegex([1, 2]).test(data[key]) 
         ? this.#errorMessages.money(key, data)
         : undefined,
+      length: (key, data, args = []) => {
+        const minLength = args[0] ? parseInt(args[0]) : 0;
+        const maxLength = args[1] ? parseInt(args[1]) : Number.MAX_SAFE_INTEGER;
+        const value = data[key];
+        if (minLength > maxLength) {
+          throw new Error(`Invalid validation defintion for ${key}; minLength must be smaller than maxLength`)
+        }
+        return value.length < minLength || value.length > maxLength
+          ? this.#errorMessages.length(key, data, args)
+          : undefined;
+      },
     };
   }
 
