@@ -142,6 +142,7 @@ describe('integration tests', () => {
       nested: {
         field1: {
           field1a: 'required',
+          fieldSomethingElse: null,
         },
         field2: 'required',
       },

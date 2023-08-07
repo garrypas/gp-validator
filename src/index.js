@@ -7,8 +7,11 @@ const cleanKey = (str) => {
   return parts[parts.length - 1];
 }
 
-const flattenObject = (obj, prefix = '') =>
-  Object.entries(obj).reduce(
+const flattenObject = (obj, prefix = '') => {
+  if (!obj) {
+    return {};
+  }
+  return Object.entries(obj).reduce(
     (flattened, [key, value]) =>
       typeof value === 'object' && !Array.isArray(value)
         ? {
@@ -18,6 +21,7 @@ const flattenObject = (obj, prefix = '') =>
         : Object.assign(flattened, { [`${prefix}${key}`]: value }),
     {}
   );
+}
 
 const unFlattenObject = (obj) => {
   return Object.keys(obj).reduce((prev, cur) => {
