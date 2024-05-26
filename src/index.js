@@ -80,7 +80,7 @@ class Validator {
         } in length.`,
     }
     this.#rules = {
-      required: (key, data) => !!data[key].toString() ? undefined : this.#errorMessages.required(key, data),
+      required: (key, data) => !!data[key]?.toString() ? undefined : this.#errorMessages.required(key, data),
       integer: (key, data) => /^[0-9]*$/i.test(data[key].toString()) ? undefined : this.#errorMessages.integer(key, data),
       decimal: (key, data, args = []) =>
         data[key] && !createDecimalRegex(args).test(data[key].toString())
@@ -108,7 +108,7 @@ class Validator {
     const flatRules = flattenObject(rules);
 
     const validationResults = await Promise.all(
-      Object.keys(flatData).flatMap(
+      Object.keys(flatRules).flatMap(
         async (key) => {
           const thisKeyRules = getRules(flatRules[key]);
           return ({

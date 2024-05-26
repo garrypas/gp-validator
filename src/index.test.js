@@ -155,6 +155,42 @@ describe('integration tests', () => {
     expect(result.errorCount).toBe(2);
   });
 
+  test('should validate nested fields when parent is null', async () => {
+    const data = {
+      nested: {
+        field1: null,
+        field2: '',
+      },
+    };
+    const rules = {
+      nested: {
+        field1: {
+          field1a: 'required',
+          fieldSomethingElse: null,
+        },
+        field2: 'required',
+      },
+    }
+    const result = await validator.validate(data, rules);
+    expect(result.errors.nested.field1.field1a).toContain('The field1a field is required.');
+    expect(result.errors.nested.field2).toContain('The field2 field is required.');
+    expect(result.errors.nested.field2).toHaveLength(1);
+    expect(result.errors.nested.field1.field1a).toHaveLength(1);
+    expect(result.errorCount).toBe(2);
+  });
+
+  test('should validate objects', async () => {
+    const data = {
+      field1: null,
+    };
+    const rules = {
+      field1: 'required',
+    }
+    const result = await validator.validate(data, rules);
+    expect(result.errors.field1).toContain('The field1 field is required.');
+    expect(result.errorCount).toBe(1);
+  });
+
   test('should validate nested with object definition', async () => {
     const data = {
       nested: {
