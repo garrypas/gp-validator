@@ -179,7 +179,19 @@ describe('integration tests', () => {
     expect(result.errorCount).toBe(2);
   });
 
-  test('should validate objects', async () => {
+
+  test('should validate objects when valid', async () => {
+    const data = {
+      field1: {},
+    };
+    const rules = {
+      field1: 'required',
+    }
+    const result = await validator.validate(data, rules);
+    expect(result.errors.field1).toHaveLength(0);
+  });
+
+  test('should validate objects when invalid', async () => {
     const data = {
       field1: null,
     };

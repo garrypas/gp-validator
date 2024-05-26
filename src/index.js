@@ -7,7 +7,9 @@ const cleanKey = (str) => {
   return parts[parts.length - 1];
 }
 
-const flattenObject = (obj, prefix = '') => {
+/* template is because we don't want to flatten the data object if we're validating an object, otherwise we'll
+dig into the object to find the values to validate */
+const flattenObject = (obj, prefix = '', template = []) => {
   if (!obj) {
     return {};
   }
@@ -16,7 +18,9 @@ const flattenObject = (obj, prefix = '') => {
       typeof value === 'object' && !Array.isArray(value)
         ? {
           ...flattened,
-          ...flattenObject(value, `${prefix}${key}.`)
+          ...(template.includes(`${prefix}${key}`)
+            ? { [`${prefix}${key}`]: value }
+            : flattenObject(value, `${prefix}${key}.`)),
         }
         : Object.assign(flattened, { [`${prefix}${key}`]: value }),
     {}
@@ -104,9 +108,8 @@ class Validator {
   }
 
   async validate (data, rules) {
-    const flatData = flattenObject(data);
     const flatRules = flattenObject(rules);
-
+    const flatData = flattenObject(data, undefined, Object.keys(flatRules));
     const validationResults = await Promise.all(
       Object.keys(flatRules).flatMap(
         async (key) => {
